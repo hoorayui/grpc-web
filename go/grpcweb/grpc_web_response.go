@@ -90,7 +90,12 @@ func (w *grpcWebResponse) finishRequest(req *http.Request) {
 		w.copyTrailersToPayload()
 	} else {
 		w.WriteHeader(http.StatusOK)
-		w.wrapped.(http.Flusher).Flush()
+		// https://github.com/zhlicen/grpc-web/issues/1
+		// write error to trailer
+		w.wrapped.Header().Del("grpc-status")
+		w.wrapped.Header().Del("grpc-message")
+		w.copyTrailersToPayload()
+		// w.wrapped.(http.Flusher).Flush()
 	}
 }
 
