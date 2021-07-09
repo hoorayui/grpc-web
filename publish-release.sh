@@ -41,7 +41,7 @@ echo "Publishing $TAG"
   --repo grpc-web \
   --tag "$TAG" \
   --name "$TAG" \
-  --body "See [CHANGELOG](https://github.com/improbable-eng/grpc-web/blob/master/CHANGELOG.md) for details" \
+  --body "See [CHANGELOG](https://github.com/zhlicen/grpc-web/blob/master/CHANGELOG.md) for details" \
   go/dist/*.zip
 
 # Publish client modules to NPM.

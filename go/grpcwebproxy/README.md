@@ -4,14 +4,15 @@ This is a small reverse proxy that can front existing gRPC servers and expose th
 protocol, allowing for the gRPC services to be consumed from browsers.
 
 Features:
- * structured logging of proxied requests to stdout
- * debug HTTP endpoint (default on port `8080`)
- * Prometheus monitoring of proxied requests (`/metrics` on debug endpoint)
- * Request (`/debug/requests`) and connection tracing endpoints (`/debug/events`)
- * TLS 1.2 serving (default on port `8443`):
-   * with option to enable client side certificate validation
- * both secure (plaintext) and TLS gRPC backend connectivity:
-   * with customizable CA certificates for connections
+
+- structured logging of proxied requests to stdout
+- debug HTTP endpoint (default on port `8080`)
+- Prometheus monitoring of proxied requests (`/metrics` on debug endpoint)
+- Request (`/debug/requests`) and connection tracing endpoints (`/debug/events`)
+- TLS 1.2 serving (default on port `8443`):
+  - with option to enable client side certificate validation
+- both secure (plaintext) and TLS gRPC backend connectivity:
+  - with customizable CA certificates for connections
 
 The intended use is as a companion process for gRPC server containers.
 
@@ -20,7 +21,7 @@ The intended use is as a companion process for gRPC server containers.
 ### Pre-built binaries
 
 There are pre-built binaries available for Windows, Mac and Linux (ARM and x86_64):
-https://github.com/improbable-eng/grpc-web/releases
+https://github.com/zhlicen/grpc-web/releases
 
 ### Building from source
 
@@ -28,8 +29,8 @@ To build, you need to have Go >= 1.8, and call `go get` with `dep ensure`:
 
 ```sh
 GOPATH=~/go ; export GOPATH
-git clone https://github.com/improbable-eng/grpc-web.git $GOPATH/src/github.com/improbable-eng/grpc-web
-cd $GOPATH/src/github.com/improbable-eng/grpc-web
+git clone https://github.com/zhlicen/grpc-web.git $GOPATH/src/github.com/zhlicen/grpc-web
+cd $GOPATH/src/github.com/zhlicen/grpc-web
 dep ensure # after installing dep
 go install ./go/grpcwebproxy # installs into $GOPATH/bin/grpcwebproxy
 ```
@@ -73,7 +74,7 @@ $GOPATH/bin/grpcwebproxy \
 By default, grpcwebproxy will limit the message size that the backend sends to the client. This is currently 4MB.
 To override this, set the `--backend_max_call_recv_msg_size` flag to an integer with the desired byte size.
 
-For example, to increase the size to 5MB, set the value to 5242880 (5 * 1024 * 1024).
+For example, to increase the size to 5MB, set the value to 5242880 (5 _ 1024 _ 1024).
 
 ```bash
 grpcwebproxy \

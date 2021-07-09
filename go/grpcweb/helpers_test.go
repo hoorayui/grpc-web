@@ -7,10 +7,10 @@ import (
 	"sort"
 	"testing"
 
-	testproto "github.com/improbable-eng/grpc-web/integration_test/go/_proto/improbable/grpcweb/test"
+	testproto "github.com/zhlicen/grpc-web/integration_test/go/_proto/improbable/grpcweb/test"
 
-	"github.com/improbable-eng/grpc-web/go/grpcweb"
 	"github.com/stretchr/testify/assert"
+	"github.com/zhlicen/grpc-web/go/grpcweb"
 	"google.golang.org/grpc"
 )
 

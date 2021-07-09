@@ -30,7 +30,7 @@
   version = "1.0.0"
 
 [[constraint]]
-  name = "github.com/improbable-eng/grpc-web"
+  name = "github.com/zhlicen/grpc-web"
   version = "0.6.2"
 
 [[constraint]]

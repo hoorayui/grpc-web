@@ -25,7 +25,7 @@
 
 [[projects]]
   digest = "1:0efd83767461e5110a8d397f68ad764ffe388132ee2376de7912801a4c7794a8"
-  name = "github.com/improbable-eng/grpc-web"
+  name = "github.com/zhlicen/grpc-web"
   packages = [
     "example/go/_proto/examplecom/library",
     "go/grpcweb",
@@ -126,8 +126,8 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/improbable-eng/grpc-web/example/go/_proto/examplecom/library",
-    "github.com/improbable-eng/grpc-web/go/grpcweb",
+    "github.com/zhlicen/grpc-web/example/go/_proto/examplecom/library",
+    "github.com/zhlicen/grpc-web/go/grpcweb",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
     "google.golang.org/grpc/codes",

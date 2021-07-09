@@ -1,7 +1,7 @@
 language: go
 go:
   - "1.11"
-go_import_path: github.com/improbable-eng/grpc-web
+go_import_path: github.com/zhlicen/grpc-web
 addons:
   hosts:
     # These must match the hosts defined in test/hosts-config.ts
@@ -27,7 +27,7 @@ env:
     - BROWSER=edge15_win DISABLE_ABORT_TESTS=true
     - BROWSER=edge14_win DISABLE_ABORT_TESTS=true
     - BROWSER=edge13_win DISABLE_ABORT_TESTS=true
-    # Browsers that do not support trusting self-signed certs for wss:// connections are disabled (see https://github.com/improbable-eng/grpc-web/issues/165)
+    # Browsers that do not support trusting self-signed certs for wss:// connections are disabled (see https://github.com/zhlicen/grpc-web/issues/165)
     - BROWSER=ie11_win DISABLE_WEBSOCKET_TESTS=true
     - BROWSER=safari11 DISABLE_WEBSOCKET_TESTS=true
     - BROWSER=safari9_1 DISABLE_WEBSOCKET_TESTS=true
@@ -49,7 +49,7 @@ install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - dep ensure
   - go install ./vendor/github.com/golang/protobuf/protoc-gen-go
-  - export PATH=/home/travis/gopath/src/github.com/improbable-eng/grpc-web/protobuf/bin:$PATH
+  - export PATH=/home/travis/gopath/src/github.com/zhlicen/grpc-web/protobuf/bin:$PATH
   - nvm install
   - npm install
 before_script:

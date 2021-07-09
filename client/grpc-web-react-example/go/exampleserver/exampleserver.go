@@ -14,8 +14,8 @@ import (
 
 	"strings"
 
-	library "github.com/improbable-eng/grpc-web/example/go/_proto/examplecom/library"
-	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	library "github.com/zhlicen/grpc-web/example/go/_proto/examplecom/library"
+	"github.com/zhlicen/grpc-web/go/grpcweb"
 	"golang.org/x/net/context"
 )
 
