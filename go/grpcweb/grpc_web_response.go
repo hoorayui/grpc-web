@@ -5,6 +5,7 @@ package grpcweb
 
 import (
 	"bytes"
+	"compress/flate"
 	"compress/gzip"
 	"encoding/base64"
 	"encoding/binary"
@@ -100,14 +101,24 @@ func (w *grpcWebResponse) finishRequest(req *http.Request) {
 		w.bodyWriter.(http.Flusher).Flush()
 		io.Copy(w.wrapped, w.body)
 		w.wrapped.(http.Flusher).Flush()
-		w.copyTrailersToPayload()
+		// https://github.com/zhlicen/grpc-web/issues/3 chrome 51 dose not support trailer frame
+		if w.contentType != grpcWebTextContentType {
+			w.copyTrailersToPayload()
+		}
+
 	} else {
 		w.WriteHeader(http.StatusOK)
 		// https://github.com/zhlicen/grpc-web/issues/1
 		// write error to trailer
 		w.wrapped.Header().Del("grpc-status")
 		w.wrapped.Header().Del("grpc-message")
-		w.copyTrailersToPayload()
+		w.bodyWriter.(http.Flusher).Flush()
+		io.Copy(w.wrapped, w.body)
+		w.wrapped.(http.Flusher).Flush()
+		// https://github.com/zhlicen/grpc-web/issues/3 chrome 51 dose not support trailer frame
+		if w.contentType != grpcWebTextContentType {
+			w.copyTrailersToPayload()
+		}
 		// w.wrapped.(http.Flusher).Flush()
 	}
 }
@@ -168,7 +179,7 @@ func (gw *GZWarpper) Flush() {
 
 // NewGZWarpper ...
 func NewGZWarpper(w io.Writer) *GZWarpper {
-	gz, _ := gzip.NewWriterLevel(w, gzip.BestCompression)
+	gz, _ := gzip.NewWriterLevel(w, flate.BestCompression)
 	return &GZWarpper{gz: gz, wrapped: w}
 }
 
