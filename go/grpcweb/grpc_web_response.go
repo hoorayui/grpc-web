@@ -5,6 +5,7 @@ package grpcweb
 
 import (
 	"bytes"
+	"compress/gzip"
 	"encoding/base64"
 	"encoding/binary"
 	"io"
@@ -15,13 +16,18 @@ import (
 	"google.golang.org/grpc/grpclog"
 )
 
+// EnableGZip gzip switch
+var EnableGZip = true
+
 // grpcWebResponse implements http.ResponseWriter.
 type grpcWebResponse struct {
 	wroteHeaders bool
 	wroteBody    bool
 	headers      http.Header
 	// Flush must be called on this writer before returning to ensure encoded buffer is flushed
-	wrapped http.ResponseWriter
+	wrapped    http.ResponseWriter
+	bodyWriter io.Writer
+	body       *bytes.Buffer
 
 	// The standard "application/grpc" content-type will be replaced with this.
 	contentType string
@@ -31,10 +37,11 @@ func newGrpcWebResponse(resp http.ResponseWriter, isTextFormat bool) *grpcWebRes
 	g := &grpcWebResponse{
 		headers:     make(http.Header),
 		wrapped:     resp,
+		body:        &bytes.Buffer{},
 		contentType: grpcWebContentType,
 	}
 	if isTextFormat {
-		g.wrapped = newBase64ResponseWriter(g.wrapped)
+		g.bodyWriter = newBase64ResponseWriter(g.body)
 		g.contentType = grpcWebTextContentType
 	}
 	return g
@@ -49,7 +56,7 @@ func (w *grpcWebResponse) Write(b []byte) (int, error) {
 		w.prepareHeaders()
 	}
 	w.wroteBody, w.wroteHeaders = true, true
-	return w.wrapped.Write(b)
+	return w.bodyWriter.Write(b)
 }
 
 func (w *grpcWebResponse) WriteHeader(code int) {
@@ -83,10 +90,16 @@ func (w *grpcWebResponse) prepareHeaders() {
 		http.CanonicalHeaderKey("access-control-expose-headers"),
 		strings.Join(responseHeaderKeys, ", "),
 	)
+	if EnableGZip {
+		wh.Set(http.CanonicalHeaderKey("content-encoding"), "gzip")
+	}
 }
 
 func (w *grpcWebResponse) finishRequest(req *http.Request) {
 	if w.wroteHeaders || w.wroteBody {
+		w.bodyWriter.(http.Flusher).Flush()
+		io.Copy(w.wrapped, w.body)
+		w.wrapped.(http.Flusher).Flush()
 		w.copyTrailersToPayload()
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -127,31 +140,59 @@ func extractTrailingHeaders(src http.Header, flushed http.Header) http.Header {
 // An http.ResponseWriter wrapper that writes base64-encoded payloads. You must call Flush()
 // on this writer to ensure the base64-encoder flushes its last state.
 type base64ResponseWriter struct {
-	wrapped http.ResponseWriter
+	wrapped io.Writer
 	encoder io.WriteCloser
+	gz      *GZWarpper
 }
 
-func newBase64ResponseWriter(wrapped http.ResponseWriter) http.ResponseWriter {
+func newBase64ResponseWriter(wrapped io.Writer) io.Writer {
 	w := &base64ResponseWriter{wrapped: wrapped}
 	w.newEncoder()
 	return w
 }
 
-func (w *base64ResponseWriter) newEncoder() {
-	w.encoder = base64.NewEncoder(base64.StdEncoding, w.wrapped)
+// GZWarpper ...
+type GZWarpper struct {
+	gz      *gzip.Writer
+	wrapped io.Writer
 }
 
-func (w *base64ResponseWriter) Header() http.Header {
-	return w.wrapped.Header()
+func (gw *GZWarpper) Write(p []byte) (n int, err error) {
+	return gw.gz.Write(p)
 }
+
+// Flush ...
+func (gw *GZWarpper) Flush() {
+	gw.gz.Close()
+}
+
+// NewGZWarpper ...
+func NewGZWarpper(w io.Writer) *GZWarpper {
+	gz, _ := gzip.NewWriterLevel(w, gzip.BestCompression)
+	return &GZWarpper{gz: gz, wrapped: w}
+}
+
+func (w *base64ResponseWriter) newEncoder() {
+	if EnableGZip {
+		gz := NewGZWarpper(w.wrapped)
+		w.gz = gz
+		w.encoder = base64.NewEncoder(base64.StdEncoding, gz)
+	} else {
+		w.encoder = base64.NewEncoder(base64.StdEncoding, w.wrapped)
+	}
+}
+
+// func (w *base64ResponseWriter) Header() http.Header {
+// 	return w.wrapped.Header()
+// }
 
 func (w *base64ResponseWriter) Write(b []byte) (int, error) {
 	return w.encoder.Write(b)
 }
 
-func (w *base64ResponseWriter) WriteHeader(code int) {
-	w.wrapped.WriteHeader(code)
-}
+// func (w *base64ResponseWriter) WriteHeader(code int) {
+// 	w.wrapped.WriteHeader(code)
+// }
 
 func (w *base64ResponseWriter) Flush() {
 	// Flush the base64 encoder by closing it. Grpc-web permits multiple padded base64 parts:
@@ -161,6 +202,7 @@ func (w *base64ResponseWriter) Flush() {
 		// Must ignore this error since Flush() is not defined as returning an error
 		grpclog.Errorf("ignoring error Flushing base64 encoder: %v", err)
 	}
+	w.gz.Flush()
 	w.newEncoder()
-	w.wrapped.(http.Flusher).Flush()
+	// w.wrapped.(io.Closer).Close()
 }
