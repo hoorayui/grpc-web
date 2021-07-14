@@ -98,12 +98,14 @@ func (w *grpcWebResponse) prepareHeaders() {
 
 func (w *grpcWebResponse) finishRequest(req *http.Request) {
 	if w.wroteHeaders || w.wroteBody {
-		w.bodyWriter.(http.Flusher).Flush()
-		io.Copy(w.wrapped, w.body)
-		w.wrapped.(http.Flusher).Flush()
+
 		// https://github.com/zhlicen/grpc-web/issues/3 chrome 51 dose not support trailer frame
 		if w.contentType != grpcWebTextContentType {
 			w.copyTrailersToPayload()
+		} else {
+			w.bodyWriter.(http.Flusher).Flush()
+			io.Copy(w.wrapped, w.body)
+			w.wrapped.(http.Flusher).Flush()
 		}
 
 	} else {
@@ -112,14 +114,8 @@ func (w *grpcWebResponse) finishRequest(req *http.Request) {
 		// write error to trailer
 		w.wrapped.Header().Del("grpc-status")
 		w.wrapped.Header().Del("grpc-message")
-		w.bodyWriter.(http.Flusher).Flush()
-		io.Copy(w.wrapped, w.body)
-		w.wrapped.(http.Flusher).Flush()
-		// https://github.com/zhlicen/grpc-web/issues/3 chrome 51 dose not support trailer frame
-		if w.contentType != grpcWebTextContentType {
-			w.copyTrailersToPayload()
-		}
-		// w.wrapped.(http.Flusher).Flush()
+		w.copyTrailersToPayload()
+
 	}
 }
 
@@ -129,8 +125,10 @@ func (w *grpcWebResponse) copyTrailersToPayload() {
 	trailers.Write(trailerBuffer)
 	trailerGrpcDataHeader := []byte{1 << 7, 0, 0, 0, 0} // MSB=1 indicates this is a trailer data frame.
 	binary.BigEndian.PutUint32(trailerGrpcDataHeader[1:5], uint32(trailerBuffer.Len()))
-	w.wrapped.Write(trailerGrpcDataHeader)
-	w.wrapped.Write(trailerBuffer.Bytes())
+	w.bodyWriter.Write(trailerGrpcDataHeader)
+	w.bodyWriter.Write(trailerBuffer.Bytes())
+	w.bodyWriter.(http.Flusher).Flush()
+	io.Copy(w.wrapped, w.body)
 	w.wrapped.(http.Flusher).Flush()
 }
 
