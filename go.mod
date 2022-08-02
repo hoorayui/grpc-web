@@ -1,4 +1,4 @@
-module github.com/zhlicen/grpc-web
+module github.com/hoorayui/grpc-web
 
 go 1.16
 
