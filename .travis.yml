@@ -1,7 +1,7 @@
 language: go
 go:
   - "1.11"
-go_import_path: github.com/zhlicen/grpc-web
+go_import_path: github.com/hoorayui/grpc-web
 addons:
   hosts:
     # These must match the hosts defined in test/hosts-config.ts
@@ -49,7 +49,7 @@ install:
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - dep ensure
   - go install ./vendor/github.com/golang/protobuf/protoc-gen-go
-  - export PATH=/home/travis/gopath/src/github.com/zhlicen/grpc-web/protobuf/bin:$PATH
+  - export PATH=/home/travis/gopath/src/github.com/hoorayui/grpc-web/protobuf/bin:$PATH
   - nvm install
   - npm install
 before_script:
