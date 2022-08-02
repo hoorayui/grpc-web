@@ -16,7 +16,6 @@ require (
 	github.com/sirupsen/logrus v1.4.1
 	github.com/spf13/pflag v1.0.3
 	github.com/stretchr/testify v1.3.0 // indirect
-	github.com/zhlicen/grpc-web/go/grpcweb v0.0.0-20210714093959-09453b1a0eb6
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
 	golang.org/x/sys v0.0.0-20190418153312-f0ce4c0180be // indirect
 	google.golang.org/grpc v1.27.1
